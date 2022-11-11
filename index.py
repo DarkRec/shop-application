@@ -554,7 +554,7 @@ def ProductsList():
         Label(window, text=f"{prod.name}").grid(row=x, column=0)
         # .grid(row=x, column=0)
         Label(window, text=f"{round(prod.price, 2)}").grid(row=x, column=1)
-        Button(window, text="Dodaj do koszyka", command=lambda:AddToCart(prod.name)).grid(row=x, column=2)
+        Button(window, text="Dodaj do koszyka", command=lambda tempName=prod.name: AddToCart(tempName)).grid(row=x, column=2)
         # self.listaProduktow[x].wyswietl()
         x+=1
 
@@ -619,6 +619,7 @@ def AccountData():
     Label(window,
         text=f"Nr Telefonu: {user.daneKontaktowe(user.login)[1]}"
         ).grid(row=6, column=1)
+
 
 def Orders():
     clear
