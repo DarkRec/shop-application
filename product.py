@@ -1,5 +1,6 @@
 class Produkt:
-    def __init__(self, name, price: float, opis):
+    def __init__(self, id: int, name, price: float, opis):
+        self.id = id
         self.name = name
         self.price = price
         self.magazined = 0

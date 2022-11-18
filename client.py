@@ -9,11 +9,11 @@ class Klient:
         self.imie = self.daneOsobowe(login)[0]
         self.nazwisko = self.daneOsobowe(login)[1]
         self.email = self.daneKontaktowe(login)[0]
-        self.miasto = self.daneKontaktowe(login)[1]
-        self.ulica = self.daneKontaktowe(login)[2]
-        self.lokal = self.daneKontaktowe(login)[3]
-        self.kodPocztowy = self.daneKontaktowe(login)[4]
-        self.nrTel = self.daneKontaktowe(login)[5]
+        self.nrTel = self.daneKontaktowe(login)[1]
+        self.miasto = self.daneKontaktowe(login)[2]
+        self.ulica = self.daneKontaktowe(login)[3]
+        self.lokal = self.daneKontaktowe(login)[4]
+        self.kodPocztowy = self.daneKontaktowe(login)[5]
         self.type = type
         self.wypiszDane()
 
@@ -56,6 +56,7 @@ class Klient:
                 self.nrTel = wartosc
                 cursor.execute("UPDATE klienci SET '%s' = '%s' WHERE (`username` = '%s');" % (
                     "nrTelefonu", wartosc, self.login))
+        connection.commit()
 
     def wypiszDane(self):
         print(self.imie, self.nazwisko)

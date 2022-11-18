@@ -1,12 +1,16 @@
 from datetime import date
+from connection import *
+from db import *
 
 
 class Zamowienie:
-    def __init__(self, ProductList, value, status, date):
-        self.ListaProduktow = ProductList
+    def __init__(self, login, daneKlienta, value, productList, date, status):
+        self.login = login
+        self.klient = daneKlienta
         self.wartosc = value
-        self.status = status
+        self.listaProduktow = productList
         self.data = date
+        self.status = status
 
     def wypisz(self):
         print("======")
@@ -14,12 +18,15 @@ class Zamowienie:
         print(f"data - {self.data}")
 
     def wyswietl(self):
-        return (self.ListaProduktow, self.wartosc, self.status, self.data)
+        return (self.listaProduktow, self.wartosc, self.status, self.data)
+
+    def dodajZamowienie(self):
+        DB.AddOrder(self.login, self.klient, self.wartosc, self.listaProduktow, self.data)
 
 
 class Zamowienia:
     def __init__(self, ordersList, login):
-        self.listaZamowien = ordersList
+        self.lista = ordersList
         self.login = login
 
     def wypiszZamowienia(self):

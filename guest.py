@@ -1,5 +1,6 @@
 from connection import *
 from client import *
+from db import *
 
 
 class Gosc:
@@ -13,11 +14,8 @@ class Gosc:
                 print('Taki użytkownik już istnieje')
         except:
             print('Rejestracja użytkownika', login)
-        cursor.execute("INSERT INTO klienci (`username`, `imie`, `nazwisko`, `email`, `miasto`, `ulica`, `lokal`, `kodPocztowy`, nrTelefonu) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % (
-            login, imie, nazwisko, email, miasto, ulica, lokal, kod, nrTel))
-        cursor.execute(
-            "INSERT INTO users (`username`, `password`) VALUES ('%s', '%s');" % (login, haslo))
-        connection.commit()
+        DB.AddClient(login, imie, nazwisko, email, miasto, ulica, lokal, kod, nrTel)
+        DB.AddUser(login, haslo)
 
     def logowanie(login, haslo):
         cursor = connection.cursor()
