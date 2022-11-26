@@ -21,7 +21,8 @@ class Zamowienie:
         return (self.listaProduktow, self.wartosc, self.status, self.data)
 
     def dodajZamowienie(self):
-        DB.AddOrder(self.login, self.klient, self.wartosc, self.listaProduktow, self.data)
+        DB.AddOrder(self.login, self.klient, self.wartosc,
+                    self.listaProduktow, self.data)
 
 
 class Zamowienia:

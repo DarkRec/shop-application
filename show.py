@@ -6,6 +6,11 @@ class Przegladanie:
     def __init__(self):
         self.lista = []
 
+        self.loadFromDB()
+        self.strona = 1
+        self.rozmiarStrony = 5
+
+    def loadFromDB(self):
         cursor = connection.cursor()
         cursor.execute("SELECT _id, nazwa, cena FROM Produkty")
         fetchedRows = cursor.fetchall()
@@ -20,9 +25,6 @@ class Przegladanie:
             except:
                 opis = ""
             self.lista.append(Produkt(id, nazwa, cena, opis))
-
-        self.strona = 1
-        self.rozmiarStrony = 5
 
     def przegladanie(self, lista):
         strona = []

@@ -1,6 +1,7 @@
 from connection import *
 from client import *
 from db import *
+from admin import *
 
 
 class Gosc:
@@ -14,7 +15,8 @@ class Gosc:
                 print('Taki użytkownik już istnieje')
         except:
             print('Rejestracja użytkownika', login)
-        DB.AddClient(login, imie, nazwisko, email, miasto, ulica, lokal, kod, nrTel)
+        DB.AddClient(login, imie, nazwisko, email,
+                     miasto, ulica, lokal, kod, nrTel)
         DB.AddUser(login, haslo)
 
     def logowanie(login, haslo):
@@ -23,16 +25,17 @@ class Gosc:
             "SELECT type FROM users WHERE username = '%s' AND password LIKE '%s'" % (login, haslo))
         fetchedRow = cursor.fetchone()
         try:
+            global user
             if fetchedRow[0] == 'user':
-                global user
-                user = Klient(login, fetchedRow[0])
+                user = Klient(login)
                 global cart
                 cart = Koszyk(login)
                 print('Logowanie użytkownika ', login)
                 return user
             elif fetchedRow[0] == 'admin':
                 print('Logowanie administratora', login)
-                return 'admin'
+                user = Admin(login)
+                return user
         except:
             print("Błąd logowania")
             return 'guest'

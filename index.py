@@ -11,16 +11,23 @@ from orders import *
 from gui import *
 
 
-# ------------------- Basic variables ------------------#
-
-# loadProductsFromDB(Produkty)
-# search = Przegladanie(Produkty)
-
-
 # ----------------------------------- MAIN -----------------------------------#
 
-# def main():
+def donothing():
+    print("a")
 
 
-# if __name__ == '__main__':
-#    main()
+def main():
+    root = Tk()
+    gui = GUI(root)
+
+    #menubar = Menu(root)
+    #menubar.add_cascade(label="File", command=donothing)
+
+    # root.config(menu=menubar)
+
+    root.mainloop()
+
+
+if __name__ == '__main__':
+    main()

@@ -3,7 +3,7 @@ from cart import *
 
 
 class Klient:
-    def __init__(self, login, type) -> None:
+    def __init__(self, login) -> None:
         self.login = login
         self.koszyk = Koszyk(login)
         self.imie = self.daneOsobowe(login)[0]
@@ -14,7 +14,7 @@ class Klient:
         self.ulica = self.daneKontaktowe(login)[3]
         self.lokal = self.daneKontaktowe(login)[4]
         self.kodPocztowy = self.daneKontaktowe(login)[5]
-        self.type = type
+        self.type = "user"
         self.wypiszDane()
 
     def daneOsobowe(self, login):
