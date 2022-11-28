@@ -18,13 +18,13 @@ class Koszyk:
     def loadFromDB(self):
         cursor = connection.cursor()
         cursor.execute(
-            "SELECT produkty._id, produkt, cena, opis, koszyk.ilosc FROM koszyk INNER JOIN produkty ON koszyk.produkt = produkty.nazwa WHERE username = '%s';" % (self.login))
+            "SELECT produkty._id, produkt, cena, produkty.ilosc, opis, koszyk.ilosc FROM koszyk INNER JOIN produkty ON koszyk.produkt = produkty.nazwa WHERE username = '%s';" % (self.login))
         fetchedRows = cursor.fetchall()
 
         self.zawartosc = []
         for row in fetchedRows:
             self.zawartosc.append(ElementKoszyka(
-                Produkt(row[0], row[1], row[2], row[3]), row[4]))
+                Produkt(row[0], row[1], row[2], row[3], row[4]), row[5]))
 
     def obliczWartosc(self):
         self.wartosc = 0
@@ -50,10 +50,6 @@ class Koszyk:
         if ilosc > 0:
             self.zawartosc.append(ElementKoszyka(produkt, ilosc))
         self.obliczWartosc()
-        # cursor = connection.cursor()
-        # cursor.execute(
-        #    "INSERT INTO users (`username`, `password`) VALUES ('%s', '%s');" % (login, haslo))
-        # connection.commit()
 
     def usun(self, produkt):
         for el in self.zawartosc:

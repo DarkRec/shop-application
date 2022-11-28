@@ -1,35 +1,25 @@
 from connection import *
 from cart import *
+from db import *
 
 
 class Klient:
     def __init__(self, login) -> None:
         self.login = login
         self.koszyk = Koszyk(login)
-        self.imie = self.daneOsobowe(login)[0]
-        self.nazwisko = self.daneOsobowe(login)[1]
-        self.email = self.daneKontaktowe(login)[0]
-        self.nrTel = self.daneKontaktowe(login)[1]
-        self.miasto = self.daneKontaktowe(login)[2]
-        self.ulica = self.daneKontaktowe(login)[3]
-        self.lokal = self.daneKontaktowe(login)[4]
-        self.kodPocztowy = self.daneKontaktowe(login)[5]
+        self.imie = self.daneUzytkownika()[0]
+        self.nazwisko = self.daneUzytkownika()[1]
+        self.email = self.daneUzytkownika()[2]
+        self.nrTel = self.daneUzytkownika()[3]
+        self.miasto = self.daneUzytkownika()[4]
+        self.ulica = self.daneUzytkownika()[5]
+        self.lokal = self.daneUzytkownika()[6]
+        self.kodPocztowy = self.daneUzytkownika()[7]
         self.type = "user"
         self.wypiszDane()
 
-    def daneOsobowe(self, login):
-        cursor = connection.cursor()
-        cursor.execute(
-            "SELECT imie, nazwisko FROM klienci WHERE username = '%s'" % (login))
-        fetchedRow = cursor.fetchone()
-        return fetchedRow
-
-    def daneKontaktowe(self, login):
-        cursor = connection.cursor()
-        cursor.execute(
-            "SELECT email, nrTelefonu, miasto, ulica, lokal, kodPocztowy FROM klienci WHERE username = '%s'" % (login))
-        fetchedRow = cursor.fetchone()
-        return fetchedRow
+    def daneUzytkownika(self):
+        return DB.UserData(self.login)
 
     def edytujDane(self):
         rodzaj = input("Co chcesz edytowac?  ")

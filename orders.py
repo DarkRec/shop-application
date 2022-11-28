@@ -1,5 +1,3 @@
-from datetime import date
-from connection import *
 from db import *
 
 

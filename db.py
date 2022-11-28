@@ -54,14 +54,17 @@ class DB:
         connection.commit()
 
     def AddClient(login, imie, nazwisko, email, miasto, ulica, lokal, kod, nrTel):
-        cursor.execute("INSERT INTO klienci (`username`, `imie`, `nazwisko`, `email`, `miasto`, `ulica`, `lokal`, `kodPocztowy`, nrTelefonu) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % (
-            login, imie, nazwisko, email, miasto, ulica, lokal, kod, nrTel))
+        cursor.execute(
+            f"INSERT INTO klienci (`username`, `imie`, `nazwisko`, `email`, `miasto`, `ulica`, `lokal`, `kodPocztowy`, nrTelefonu) VALUES ('{login}', '{imie}', '{nazwisko}', '{email}', '{miasto}', '{ulica}', '{lokal}', '{kod}', '{nrTel}');")
         connection.commit()
 
     def AddProduct(nazwa, cena, ilosc, opis):
         cursor.execute(
-            f"INSERT INTO produkty (`nazwa`, `cena`, `ilosc`, `opis`) VALUES ('{nazwa}', '{cena}', '{ilosc}', '{opis}');")
-        connection.commit()
+            f"SELECT COUNT(*) FROM sklep.koszyk WHERE produkt = '{nazwa}';")
+        if int(cursor.fetchone()[0]) == 0:
+            cursor.execute(
+                f"INSERT INTO produkty (`nazwa`, `cena`, `ilosc`, `opis`) VALUES ('{nazwa}', '{cena}', '{ilosc}', '{opis}');")
+            connection.commit()
 
     def AddOrder(login, klient, wartosc, lista, data):
         cursor.execute(
@@ -83,20 +86,53 @@ class DB:
             f"UPDATE `koszyk` SET `ilosc` = '{ilosc}' WHERE (`username` = '{login}' AND `produkt` = '{prod}');")
         connection.commit()
 
-    def RemoveProduct(prodName):
-        cursor.execute(
-            f"SELECT _id FROM produkty WHERE nazwa = '{prodName}';")
-        fetchedRow = cursor.fetchone()
-
+    def RemoveProduct(nazwa, ID):
         connection.cursor().execute(
-            f"DELETE FROM `produkty` WHERE (`_id` = '{fetchedRow[0]}');")
+            f"DELETE FROM `produkty` WHERE (`_id` = '{ID}');")
         connection.commit()
 
         cursor.execute(
-            f"SELECT _id FROM `koszyk` WHERE (`produkt` = '{prodName}');")
+            f"SELECT _id FROM `koszyk` WHERE (`produkt` = '{nazwa}');")
         fetchedRows = cursor.fetchall()
 
         for x in fetchedRows:
             connection.cursor().execute(
                 f"DELETE FROM `koszyk` WHERE (`_id` = '{x[0]}');")
         connection.commit()
+
+    def EditProduct():
+        pass
+        # f"UPDATE `produkty` SET `cena` = '{cena}', `ilosc` = '{ilosc}' `opis` = '{opis}' WHERE (`nazwa` = '{nazwa}');")
+
+    def UserData(login):
+        cursor.execute(
+            f"SELECT imie, nazwisko, email, nrTelefonu, miasto, ulica, lokal, kodPocztowy FROM klienci WHERE username = '{login}'")
+        fetchedRow = cursor.fetchone()
+        return fetchedRow
+
+    def OrderInfo():
+        pass
+
+    def CancelOrder():
+        pass
+
+    def Paid():
+        pass
+
+    def OrdersToAuthorization():
+        pass
+
+    def Authorization():
+        pass
+
+    def LoadDiscounts():
+        pass
+
+    def AddDiscount():
+        pass
+
+    def DeleteDiscount():
+        pass
+
+    def EditDiscount():
+        pass

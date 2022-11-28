@@ -1,5 +1,4 @@
 from datetime import datetime
-from connection import *
 from tkinter import *
 from tkinter import scrolledtext
 from guest import *
@@ -20,14 +19,14 @@ class GUI:
         # self.main.pack(padx=0, pady=10)
         self.main.place(x=5, y=0)
         self.user = Gosc()
-        self.MenuGoscia()
+        self.PanelGoscia()
         self.ProductsList(1)
 
     def delete(self):
         for widget in self.window.winfo_children():
             widget.destroy()
 
-    def clear(self):
+    def ClearGUI(self):
         for widget in self.main.winfo_children():
             widget.destroy()
             # if type(label) == Label:  # just Label since you used a wildcard import to import tkinter
@@ -35,8 +34,8 @@ class GUI:
 
 # --------------- guest --------------- #
 
-    def MenuGoscia(self):  # ----- guest panel ----- #
-        self.clear()
+    def PanelGoscia(self):  # ----- guest panel ----- #
+        self.ClearGUI()
 
         menubar = Menu(self.window)
         menubar.add_cascade(label="Lista Produktów",
@@ -55,7 +54,7 @@ class GUI:
         self.window['menu'] = menubar
 
     def PanelLogowania(self):  # ----- login ----- #
-        self.clear()
+        self.ClearGUI()
 
         def log_in():
             inputLogin = usernameEntry.get()
@@ -66,8 +65,10 @@ class GUI:
                     self.PanelKlienta()
                 elif self.user.type == "admin":
                     self.PanelAdmina()
+            except:
+                print("Błąd Logowania")
             finally:
-                self.clear()
+                self.ClearGUI()
         Label(self.main, text="login").grid(row=0, column=0)
         usernameEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
         usernameEntry.grid(row=0, column=1)
@@ -88,11 +89,11 @@ class GUI:
                text="Anuluj",
                bg="blue",
                fg="yellow",
-               command=self.MenuGoscia,
+               command=self.PanelGoscia,
                ).grid(row=3, column=1)
 
     def PanelRejestracji(self):  # ----- register ----- #
-        self.clear()
+        self.ClearGUI()
 
         def register():
             login = usernameEntry.get()
@@ -110,7 +111,7 @@ class GUI:
                                  email, miasto, ulica, lokal, kod, nrTel)
             except:
                 print("Błąd")
-            else:
+            finally:
                 self.user = Gosc.logowanie(login, haslo)
                 # if self.user.type == 'user':
                 #    self.PanelKlienta()
@@ -169,17 +170,17 @@ class GUI:
                text="Anuluj",
                bg="blue",
                fg="yellow",
-               command=self.MenuGoscia,
+               command=self.PanelGoscia,
                ).grid(row=7, column=2)
 
 # --------------- client --------------- #
 
     def Wylogowywanie(self):
         self.user = Gosc()
-        self.MenuGoscia()
+        self.PanelGoscia()
 
     def PanelKlienta(self):  # ----- client panel ----- #
-        # self.clear()
+        # self.ClearGUI()
         menubar = Menu(self.window)
         menubar.add_cascade(label="Lista Produktów",
                             command=lambda: self.ProductsList(1))
@@ -193,10 +194,6 @@ class GUI:
                             command=self.CartList)
         menubar.add_separator()
 
-        menubar.add_cascade(label="Zamówienia",
-                            command="")
-        menubar.add_separator()
-
         menubar.add_cascade(label="Wyloguj",
                             command=self.Wylogowywanie)
 
@@ -206,7 +203,7 @@ class GUI:
 
     def ProductsList(self, strona):
         Produkty.strona = strona
-        self.clear()
+        self.ClearGUI()
 
         x = 2
 
@@ -218,8 +215,8 @@ class GUI:
             DB.RemoveFromCart(prod, username)
             self.ProductsList(Produkty.strona)
 
-        def RemoveProduct(prod):
-            DB.RemoveProduct(prod)
+        def RemoveProduct(prod, id):
+            DB.RemoveProduct(prod, id)
             for x, i in enumerate(Produkty.lista):
                 if i.name == prod:
                     del Produkty.lista[x]
@@ -235,8 +232,7 @@ class GUI:
                fg="yellow",
                command=lambda: self.Search(
                    Produkty.wyszukaj(searchInput.get())),
-               width=15,
-               ).grid(row=1, column=2, padx=25)
+               width=15).grid(row=1, column=2, padx=25)
 
         # in range(Produkty.rozmiarStrony)
         for prod in Produkty.przegladanie(Produkty.lista):
@@ -245,21 +241,23 @@ class GUI:
                     row=x, column=0)
                 Label(self.main, text="%.2fzł" % round(prod.price, 2)).grid(
                     row=x, column=1)
+                Button(self.main, text="Info", bg="blue", command=lambda tempname=prod.name: self.ProductInfo(
+                    tempname)).grid(row=x, column=2)
             except:
                 pass
 
             try:
                 if self.user.type == 'user':
                     if (DB.ProdInCart(prod.name) == 0):
-                        Button(self.main, text="Dodaj do koszyka", bg="green", command=lambda tempName=prod.name: AddToCart(
-                            tempName, self.user.login)).grid(row=x, column=2)
+                        Button(self.main, text="Dodaj do koszyka", bg="green", command=lambda tempname=prod.name: AddToCart(
+                            tempname, self.user.login)).grid(row=x, column=2)
                     else:
-                        Button(self.main, text="Usuń z koszyka", bg="red", command=lambda tempName=prod.name: RemoveFromCart(
-                            tempName, self.user.login)).grid(row=x, column=2)
+                        Button(self.main, text="Usuń z koszyka", bg="red", command=lambda tempname=prod.name: RemoveFromCart(
+                            tempname, self.user.login)).grid(row=x, column=2)
                 if self.user.type == 'admin':
                     # print(prod.name)
                     Button(self.main, text="Usuń produkt", bg="red",
-                           command=lambda tempName=prod.name: RemoveProduct(tempName)).grid(row=x, column=2)
+                           command=lambda tempID=prod.id, tempname=prod.name: RemoveProduct(tempID, tempname)).grid(row=x, column=2)
             except:
                 pass
             x += 1
@@ -271,17 +269,23 @@ class GUI:
             Produkty.strona -= 1
             if Produkty.strona == 0:
                 Produkty.strona = 1
-            if self.user.type == "user":
+            try:
+                if self.user.type == "user":
+                    self.ProductsList(Produkty.strona)
+                elif self.user.type == "admin":
+                    self.EditProduct(Produkty.strona)
+            except:
                 self.ProductsList(Produkty.strona)
-            elif self.user.type == "admin":
-                self.EditProduct(Produkty.strona)
 
         def Next():
             Produkty.strona += 1
-            if self.user.type == "user":
+            try:
+                if self.user.type == "user":
+                    self.ProductsList(Produkty.strona)
+                elif self.user.type == "admin":
+                    self.EditProduct(Produkty.strona)
+            except:
                 self.ProductsList(Produkty.strona)
-            elif self.user.type == "admin":
-                self.EditProduct(Produkty.strona)
 
         Button(self.main,
                text="<",
@@ -299,13 +303,39 @@ class GUI:
                width=5,
                ).grid(row=x, column=1, sticky=E, pady=10)
 
+    def ProductInfo(self, nazwa):
+        self.ClearGUI()
+        for x in Produkty.lista:
+            if x.name == nazwa:
+                Label(self.main, text=f"{x.name}", font=(
+                    "Arial", 25)).grid(row=0, column=0, padx=5)
+
+                frm = Frame(self.main, width=300, height=200)
+                frm.grid(row=1, column=0, padx=5)
+
+                Label(frm, text=f"{x.price}").grid(
+                    row=0, column=0, padx=5)
+
+                #Label(frm, text=f"{x.ilosc}").grid(row=0, column=1, padx=5)
+
+                Label(self.main, text=f"{x.opis}").grid(
+                    row=2, column=0, padx=5)
+                Button(self.main,
+                       text="Cofnij",
+                       bg="blue",
+                       fg="yellow",
+                       width=15,
+                       command=lambda: self.ProductsList(Produkty.strona),
+                       ).grid(row=3, column=0)
+                break
+
     def Search(self, searchResults):
-        self.clear()
+        self.ClearGUI()
         try:
             if self.user.type == "user":
                 self.PanelKlienta()
         except:
-            self.MenuGoscia()
+            self.PanelGoscia()
 
         Button(self.main,
                text="X",
@@ -315,12 +345,13 @@ class GUI:
                command=lambda: self.ProductsList(1),
                ).grid(row=1, column=2)
         Label(self.main, text=" ", height=1).grid(row=1, column=0)
+
         b = 2
         for x in searchResults:
             Label(self.main, text=f"{x.name}",
-                  height=1).grid(row=b, column=0)
+                  height=1, width=10).grid(row=b, column=0, padx=25)
             Label(self.main, text="%.2fzł" %
-                  round(x.price, 2)).grid(row=b, column=1)
+                  round(x.price, 2)).grid(row=b, column=1, padx=25)
             b += 1
 
         def Prev(searchResults):
@@ -352,7 +383,7 @@ class GUI:
 # ----- account ----- #
 
     def Account(self):
-        self.clear()
+        self.ClearGUI()
         # self.PanelKlienta()
 
         Button(self.main,
@@ -372,41 +403,41 @@ class GUI:
                ).grid(row=2, column=1)
 
     def AccountData(self):
-        self.clear()
+        self.ClearGUI()
         # self.PanelKlienta()
 
         self.user.wypiszDane()
 
         Label(self.main,
-              text=f"Imie: {self.user.daneOsobowe(self.user.login)[0]}"
+              text=f"Imie: {self.user.daneUzytkownika()[0]}"
               ).grid(row=3, column=0)  # .grid(row=x, column=0)
 
         Label(self.main,
-              text=f"Nazwisko: {self.user.daneOsobowe(self.user.login)[1]}"
+              text=f"Nazwisko: {self.user.daneUzytkownika()[1]}"
               ).grid(row=3, column=1)
 
         Label(self.main,
-              text=f"Ulica: {self.user.daneKontaktowe(self.user.login)[3]}"
+              text=f"Ulica: {self.user.daneUzytkownika()[5]}"
               ).grid(row=4, column=0)
 
         Label(self.main,
-              text=f"Nr mieszkania: {self.user.daneKontaktowe(self.user.login)[4]}"
+              text=f"Nr mieszkania: {self.user.daneUzytkownika()[6]}"
               ).grid(row=4, column=1)
 
         Label(self.main,
-              text=f"Kod Pocztowy: {self.user.daneKontaktowe(self.user.login)[5]}"
+              text=f"Kod Pocztowy: {self.user.daneUzytkownika()[7]}"
               ).grid(row=5, column=0)
 
         Label(self.main,
-              text=f"Miasto: {self.user.daneKontaktowe(self.user.login)[2]}"
+              text=f"Miasto: {self.user.daneUzytkownika()[4]}"
               ).grid(row=5, column=1)
 
         Label(self.main,
-              text=f"Email: {self.user.daneKontaktowe(self.user.login)[0]}"
+              text=f"Email: {self.user.daneUzytkownika()[2]}"
               ).grid(row=6, column=0)
 
         Label(self.main,
-              text=f"Nr Telefonu: {self.user.daneKontaktowe(self.user.login)[1]}"
+              text=f"Nr Telefonu: {self.user.daneUzytkownika()[3]}"
               ).grid(row=6, column=1)
 
 
@@ -414,7 +445,7 @@ class GUI:
 
 
     def CartList(self):
-        self.clear()
+        self.ClearGUI()
         # self.PanelKlienta()
         cartUpdate = []
         x = 2
@@ -437,8 +468,8 @@ class GUI:
                 DB.RemoveFromCart(prod, username)
                 self.CartList()
 
-            Button(self.main, text="X", bg="red", command=lambda tempName=prod.produkt.name: Remove(
-                tempName, self.user.login)).grid(row=x, column=3)
+            Button(self.main, text="X", bg="red", command=lambda tempname=prod.produkt.name: Remove(
+                tempname, self.user.login)).grid(row=x, column=3)
 
             x += 1
 
@@ -479,7 +510,7 @@ class GUI:
 # ----- orders ----- #
 
     def OrdersList(self):
-        self.clear()
+        self.ClearGUI()
         # self.PanelKlienta()
         Label(self.main, text="cena").grid(row=2, column=0)
         Label(self.main, text="data zamówienia").grid(row=2, column=1)
@@ -500,7 +531,7 @@ class GUI:
         # now = date.today()
         # now.strftime('%Y-%m-%d %H:%M:%S')
         # order = Zamowienie(klient.login, klient.koszyk.wartosc, klient.koszyk.zawartosc, now, 'waiting for authorization')
-        self.clear()
+        self.ClearGUI()
 
         def createOrder(klient):
             imie = nameEntry.get()
@@ -524,7 +555,6 @@ class GUI:
             order = Zamowienie(klient.login, ''.join(f"{str(e)};" for e in daneKlienta), klient.koszyk.wartosc,
                                ''.join(f"{str(e.produkt.id)}-{str(e.ilosc)};" for e in klient.koszyk.zawartosc), now, 'waiting for authorization')
             order.dodajZamowienie()
-            cursor = connection.cursor()
             DB.FromCartToOrder(klient.koszyk.zawartosc, klient.login)
             klient.koszyk.wartosc = 0
             # self.PanelKlienta()
@@ -586,9 +616,8 @@ class GUI:
 
 # --------------- client --------------- #
 
-
     def PanelAdmina(self):  # ----- admin panel ----- #
-        self.clear()
+        self.ClearGUI()
         menubar = Menu(self.window)
         menubar.add_cascade(label="Zarządzanie produktami",
                             command=lambda: self.EditProduct(Produkty.strona))
@@ -602,10 +631,13 @@ class GUI:
         menubar.add_cascade(label=f"{self.user.login}",
                             command="")
         menubar.add_separator()
+        menubar.add_cascade(label="Wyloguj",
+                            command=self.Wylogowywanie)
         self.window['menu'] = menubar
 
     def EditProduct(self, strona):
         self.ProductsList(strona)
+
         Label(self.main, text="Nazwa: ").grid(row=1, column=3, padx=5)
         nazwaInput = Entry(self.main, width=10)
         nazwaInput.grid(row=1, column=4, padx=5)
@@ -635,12 +667,14 @@ class GUI:
         def DodawnieProduktow():
             nazwa = nazwaInput.get()
             cena = cenaInput.get()
+            cena = cena.replace(",", ".")
             cena = float(cena)
             ilosc = iloscInput.get()
             ilosc = int(ilosc)
             opis = text_area.get("1.0", 'end-1c')
             print(nazwa, cena, ilosc, opis)
             DB.AddProduct(nazwa, cena, ilosc, opis)
+            Produkty.loadFromDB()
 
         Button(self.main,
                text="Dodaj",
