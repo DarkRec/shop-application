@@ -19,6 +19,10 @@ def donothing():
 
 def main():
     root = Tk()
+    
+    
+    # Resize the image using resize() method
+
     gui = GUI(root)
 
     #menubar = Menu(root)

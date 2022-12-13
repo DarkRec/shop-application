@@ -7,6 +7,7 @@ from cart import *
 from orders import *
 from db import *
 from show import *
+from PIL import Image, ImageTk
 
 
 class GUI:
@@ -327,6 +328,16 @@ class GUI:
                        width=15,
                        command=lambda: self.ProductsList(Produkty.strona),
                        ).grid(row=3, column=0)
+                
+                image = Image.open("test.png")
+                resize_image = image.resize((200, 200))
+                
+                img = ImageTk.PhotoImage(resize_image)
+                
+                # create label and add resize image
+                label1 = Label(image=img)
+                label1.image = img
+                label1.pack()
                 break
 
     def Search(self, searchResults):
