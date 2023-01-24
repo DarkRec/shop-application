@@ -1,368 +1,422 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+from DB import DB
+from typing import List
+from Gosc import Gosc
+from Klient import *
+
 from datetime import datetime
 from tkinter import *
 from tkinter import scrolledtext
-from guest import *
-from index import *
-from cart import *
-from orders import *
-from db import *
-from show import *
+from tkinter import messagebox
+from Przegladanie import Produkty
+
+import tkinter as tk
 from PIL import Image, ImageTk
+from Administrator import *
+from Produkt import Produkt
+from Zamowienie import *
+
+import time
 
 
 class GUI:
-    def __init__(self, window):
-        self.window = window
-        window.title("Internet Paper Shop Application")
-        window.geometry('800x400')  # '250x200+250+200'
-        window.option_add('*tearOff', FALSE)
-        self.main = Frame(window)
-        # self.main.pack(padx=0, pady=10)
-        self.main.place(x=5, y=0)
-        self.user = Gosc()
-        self.PanelGoscia()
-        self.ProductsList(1)
 
-    def delete(self):
-        for widget in self.window.winfo_children():
-            widget.destroy()
-
-    def ClearGUI(self):
-        for widget in self.main.winfo_children():
-            widget.destroy()
-            # if type(label) == Label:  # just Label since you used a wildcard import to import tkinter
-            #    label.destroy()
-
-# --------------- guest --------------- #
-
-    def PanelGoscia(self):  # ----- guest panel ----- #
+    def PanelGoscia(self) -> None:  # ----- guest panel ----- #
         self.ClearGUI()
 
         menubar = Menu(self.window)
         menubar.add_cascade(label="Lista Produktów",
                             command=lambda: self.ProductsList(1))
-
         menubar.add_separator()
-
         menubar.add_cascade(label="Logowanie",
                             command=self.PanelLogowania)
-
         menubar.add_separator()
-
         menubar.add_cascade(label="Rejestracja",
-                            command=self.PanelRejestracji)
+                            command=self.PanelRejestracji)  #
 
         self.window['menu'] = menubar
 
-    def PanelLogowania(self):  # ----- login ----- #
+    def PanelLogowania(self) -> None:  # ----- login ----- #
         self.ClearGUI()
 
         def log_in():
             inputLogin = usernameEntry.get()
             inputPasswd = passwordEntry.get()
-            self.user = Gosc.logowanie(inputLogin, inputPasswd)
             try:
-                if self.user.type == 'user':
+                type = Gosc.logowanie(inputLogin, inputPasswd)
+
+                if type == 'client':
+                    data = DB.UserData(inputLogin)
+                    self.user = Klient(data)
+                    print('Logowanie użytkownika ', self.user.login)
                     self.PanelKlienta()
-                elif self.user.type == "admin":
+                elif type == "admin":
+                    self.user = Administrator(inputLogin)
+                    print('Logowanie administratora', self.user.login)
                     self.PanelAdmina()
+                self.ProductsList(1)
             except:
-                print("Błąd Logowania")
-            finally:
-                self.ClearGUI()
-        Label(self.main, text="login").grid(row=0, column=0)
-        usernameEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+                messagebox.showerror("Error", "Zły login lub hasło")
+
+        Label(self.main, text="login", bg=self.mainColor).grid(row=0, column=0)
+        usernameEntry = Entry(self.main, fg=self.fontColor,
+                              bg=self.secondaryColor, width=20)
         usernameEntry.grid(row=0, column=1)
 
-        Label(self.main, text="hasło").grid(row=1, column=0)
-        passwordEntry = Entry(self.main, fg="yellow",
-                              bg="blue", width=20, show='*')
+        Label(self.main, text="hasło", bg=self.mainColor).grid(row=1, column=0)
+        passwordEntry = Entry(self.main, fg=self.fontColor,
+                              bg=self.secondaryColor, width=20, show='*')
         passwordEntry.grid(row=1, column=1)
 
         Button(self.main,
                text="Logowanie",
-               bg="blue",
-               fg="yellow",
+               bg=self.secondaryColor,
+               fg=self.fontColor,
                command=log_in,
                ).grid(row=3, column=0, pady=10)
 
         Button(self.main,
                text="Anuluj",
-               bg="blue",
-               fg="yellow",
+               bg=self.secondaryColor,
+               fg=self.fontColor,
                command=self.PanelGoscia,
                ).grid(row=3, column=1)
 
-    def PanelRejestracji(self):  # ----- register ----- #
+    def PanelRejestracji(self) -> None:  # ----- rejestracja ----- #
         self.ClearGUI()
 
-        def register():
-            login = usernameEntry.get()
-            haslo = passwordEntry.get()
-            imie = nameEntry.get()
-            nazwisko = surnameEntry.get()
-            email = emailEntry.get()
-            miasto = cityEntry.get()
-            ulica = streetEntry.get()
-            lokal = houseEntry.get()
-            kod = codeEntry.get()
-            nrTel = telEntry.get()
-            try:
-                Gosc.rejestracja(login, haslo, imie, nazwisko,
-                                 email, miasto, ulica, lokal, kod, nrTel)
-            except:
-                print("Błąd")
-            finally:
-                self.user = Gosc.logowanie(login, haslo)
-                # if self.user.type == 'user':
-                #    self.PanelKlienta()
-                # elif self.user.tpye == "admin":
-                #    self.PanelAdmina()
+        def rejestracja():
 
-        Label(self.main, text="login").grid(row=1, column=0)
-        usernameEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+            try:
+                Gosc.rejestracja(usernameEntry.get(), passwordEntry.get(), nameEntry.get(), surnameEntry.get(),
+                                 emailEntry.get(), cityEntry.get(), streetEntry.get(), houseEntry.get(),
+                                 codeEntry.get(), telEntry.get())
+            except:
+                pass
+                # messagebox.showerror(
+                #    "Register Error", "Rejestracja niemożliwa, brak wymaganych danych")
+            # finally:
+                # if surnameEntry.get() and passwordEntry.get():
+                #    self.user = Gosc.logowanie(
+                #        usernameEntry.get(), passwordEntry.get())
+
+        Label(self.main, text="login", bg=self.mainColor).grid(row=1, column=0)
+        usernameEntry = Entry(self.main, fg=self.fontColor,
+                              bg=self.secondaryColor, width=20)
         usernameEntry.grid(row=1, column=1)
 
-        Label(self.main, text="hasło").grid(row=1, column=2)
-        passwordEntry = Entry(self.main, fg="yellow",
-                              bg="blue", width=20, show='*')
+        Label(self.main, text="hasło", bg=self.mainColor).grid(row=1, column=2)
+        passwordEntry = Entry(self.main, fg=self.fontColor,
+                              bg=self.secondaryColor, width=20, show='*')
         passwordEntry.grid(row=1, column=3)
 
-        Label(self.main, text="imie").grid(row=2, column=0)
-        nameEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="imie", bg=self.mainColor).grid(row=2, column=0)
+        nameEntry = Entry(self.main, fg=self.fontColor,
+                          bg=self.secondaryColor, width=20)
         nameEntry.grid(row=2, column=1)
 
-        Label(self.main, text="nazwisko").grid(row=2, column=2)
-        surnameEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="nazwisko",
+              bg=self.mainColor).grid(row=2, column=2)
+        surnameEntry = Entry(self.main, fg=self.fontColor,
+                             bg=self.secondaryColor, width=20)
         surnameEntry.grid(row=2, column=3)
 
-        Label(self.main, text="ulica").grid(row=3, column=0)
-        streetEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="ulica", bg=self.mainColor).grid(row=3, column=0)
+        streetEntry = Entry(self.main, fg=self.fontColor,
+                            bg=self.secondaryColor, width=20)
         streetEntry.grid(row=3, column=1)
 
-        Label(self.main, text="nr mieszkania").grid(row=3, column=2)
-        houseEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="nr mieszkania",
+              bg=self.mainColor).grid(row=3, column=2)
+        houseEntry = Entry(self.main, fg=self.fontColor,
+                           bg=self.secondaryColor, width=20)
         houseEntry.grid(row=3, column=3)
 
-        Label(self.main, text="kod pocztowy").grid(row=4, column=0)
-        codeEntry = Entry(self.main, fg="yellow", bg="blue", width=6)
-        codeEntry.grid(row=4, column=1)
+        Label(self.main, text="kod pocztowy",
+              bg=self.mainColor).grid(row=4, column=0)
 
-        Label(self.main, text="miasto").grid(row=4, column=2)
-        cityEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        def code_format(*args):
+            if len(codeEntry.get()) > 2:
+                code = codeEntry.get().replace("-", "")
+                new_str = (f"{code[0:2]}-{code[2:]}")
+            try:
+                if len(new_str) > 6:
+                    new_str = new_str[:6]
+                e1_str.set(new_str)
+            except:
+                pass
+            position = codeEntry.index(INSERT)
+            codeEntry.icursor(position + 1)
+        e1_str = tk.StringVar()
+        codeEntry = Entry(self.main, fg=self.fontColor, bg=self.secondaryColor,
+                          width=20, textvariable=e1_str)
+        codeEntry.grid(row=4, column=1)
+        codeEntry.bind("<KeyRelease>", code_format)  # when key is released
+
+        Label(self.main, text="miasto", bg=self.mainColor).grid(row=4, column=2)
+        cityEntry = Entry(self.main, fg=self.fontColor,
+                          bg=self.secondaryColor, width=20)
         cityEntry.grid(row=4, column=3)
 
-        Label(self.main, text="e-mail").grid(row=5, column=0)
-        emailEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="e-mail", bg=self.mainColor).grid(row=5, column=0)
+        emailEntry = Entry(self.main, fg=self.fontColor,
+                           bg=self.secondaryColor, width=20)
         emailEntry.grid(row=5, column=1)
 
-        Label(self.main, text="nr telefonu").grid(row=5, column=2)
-        telEntry = Entry(self.main, fg="yellow", bg="blue", width=12)
+        Label(self.main, text="nr telefonu",
+              bg=self.mainColor).grid(row=5, column=2)
+
+        def phone_format(*args):
+            tel = telEntry.get().replace("-", "")
+            if len(tel) > 9:
+                new_str = (f"{tel[:3]}-{tel[3:6]}-{tel[6:10]}-{tel[10:]}")
+            elif len(tel) > 6:
+                new_str = (f"{tel[:3]}-{tel[3:6]}-{tel[6:]}")
+            elif len(tel) > 3:
+                new_str = (f"{tel[:3]}-{tel[3:]}")
+            try:
+                if len(new_str) > 11:
+                    new_str = new_str[:11]
+                number.set(new_str)
+            except:
+                pass
+            position = telEntry.index(INSERT)
+            telEntry.icursor(position + 1)
+        number = tk.StringVar()
+        telEntry = Entry(self.main, fg=self.fontColor, bg=self.secondaryColor,
+                         width=20, textvariable=number)
+
         telEntry.grid(row=5, column=3)
+        telEntry.bind("<KeyRelease>", phone_format)  # when key is released
 
         Button(self.main,
                text="Rejestracja",
-               bg="blue",
-               fg="yellow",
-               command=register,
+               bg=self.secondaryColor,
+               fg=self.fontColor,
+               command=rejestracja,
                ).grid(row=7, column=1, pady=10)
 
         Button(self.main,
                text="Anuluj",
-               bg="blue",
-               fg="yellow",
+               bg=self.secondaryColor,
+               fg=self.fontColor,
                command=self.PanelGoscia,
                ).grid(row=7, column=2)
 
-# --------------- client --------------- #
-
-    def Wylogowywanie(self):
-        self.user = Gosc()
-        self.PanelGoscia()
-
-    def PanelKlienta(self):  # ----- client panel ----- #
-        # self.ClearGUI()
+    def PanelKlienta(self) -> None:  # ----- client panel ----- #
         menubar = Menu(self.window)
         menubar.add_cascade(label="Lista Produktów",
-                            command=lambda: self.ProductsList(1))
+                            command=lambda: self.ProductsList(1))  #
         menubar.add_separator()
-
-        menubar.add_cascade(label=f"{self.user.login}",
-                            command=self.Account)
-        menubar.add_separator()
-
         menubar.add_cascade(label="Koszyk",
                             command=self.CartList)
         menubar.add_separator()
 
+        usermenu = Menu(menubar, tearoff=0)
+        usermenu.add_command(label="Dane", command=self.AccountData)
+        usermenu.add_command(label="Zamówienia", command=self.Zamowienia)
+
+        # command=self.Account,
+        menubar.add_cascade(label=f"{self.user.login}", menu=usermenu)
+        menubar.add_separator()
         menubar.add_cascade(label="Wyloguj",
                             command=self.Wylogowywanie)
 
         self.window['menu'] = menubar
 
-# ----- products list ----- #
+    def PanelAdmina(self) -> None:  # ----- admin panel ----- #
+        self.ClearGUI()
+        menubar = Menu(self.window)
+        menubar.add_cascade(label="Zarządzanie produktami",
+                            command=lambda: self.ProductsList(1))
+        menubar.add_separator()
+        menubar.add_cascade(label="Zarządzanie rabatami",
+                            command="")
+        menubar.add_separator()
+        menubar.add_cascade(label="Potwierdzanie zamówień",
+                            command=self.OrdersList)
+        menubar.add_separator()
+        menubar.add_cascade(label=f"{self.user.login}",
+                            command="")
+        menubar.add_separator()
+        menubar.add_cascade(label="Wyloguj",
+                            command=self.Wylogowywanie)
+        self.window['menu'] = menubar
 
-    def ProductsList(self, strona):
+    def ProductsList(self, strona: int, mode: str | None = None, id: int | None = None) -> None:
         Produkty.strona = strona
         self.ClearGUI()
 
         x = 2
 
-        def AddToCart(prod, username):
-            DB.AddToCart(prod, username)
-            self.ProductsList(Produkty.strona)
+        def AddToCart(prodID, username, mode):
+            DB.AddToCart(prodID, username)
+            self.ProductsList(Produkty.strona, mode)
 
-        def RemoveFromCart(prod, username):
-            DB.RemoveFromCart(prod, username)
-            self.ProductsList(Produkty.strona)
+        def RemoveFromCart(prodID, username, mode):
+            DB.RemoveFromCart(prodID, username)
+            self.ProductsList(Produkty.strona, mode)
 
-        def RemoveProduct(prod, id):
-            DB.RemoveProduct(prod, id)
+        def RemoveProduct(id, mode):
+            DB.RemoveProduct(id)
             for x, i in enumerate(Produkty.lista):
-                if i.name == prod:
+                if i.id == id:
                     del Produkty.lista[x]
-            self.ProductsList(Produkty.strona)
+            self.ProductsList(Produkty.strona, mode)
 
-        Label(self.main, text="Wyszukaj: ").grid(row=1, column=0, padx=25)
-        searchInput = Entry(self.main, width=10)
-        searchInput.grid(row=1, column=1, padx=25)
+        def EditProduct(id, mode):
+            # DB.EditProduct(id)
+            self.ProductsList(Produkty.strona, mode, id)
+
+        Label(self.main, text="Wyszukaj: ", bg=self.mainColor, width=25, font=("Arial", 14)).grid(
+            row=1, column=0, padx=25, pady=10)
+        searchInput = Entry(self.main, width=14)
+        searchInput.grid(row=1, column=1, padx=25, pady=10)
 
         Button(self.main,
                text="Search",
-               bg="blue",
-               fg="yellow",
-               command=lambda: self.Search(
-                   Produkty.wyszukaj(searchInput.get())),
-               width=15).grid(row=1, column=2, padx=25)
+               bg=self.secondaryColor,
+               fg=self.fontColor,
+               command=lambda: self.ProductsList(
+                   1, searchInput.get()),
+               width=15, height=2, font=("Arial", 12)).grid(row=1, column=2, padx=25, pady=10)
 
-        # in range(Produkty.rozmiarStrony)
-        for prod in Produkty.przegladanie(Produkty.lista):
+        lista = []
+        if mode is None:
+            lista = Produkty.przegladanie()
+        else:
+            lista = Produkty.wyszukaj(mode)
+
+        for prod in lista:
             try:
-                Label(self.main, text=f"{prod.name}", height=1).grid(
-                    row=x, column=0)
-                Label(self.main, text="%.2fzł" % round(prod.price, 2)).grid(
-                    row=x, column=1)
-                Button(self.main, text="Info", bg="blue", command=lambda tempname=prod.name: self.ProductInfo(
-                    tempname)).grid(row=x, column=2)
+                Label(self.main, text=f"{prod.nazwa}", height=1, bg=self.mainColor).grid(
+                    row=x, column=0, pady=3)
+                Label(self.main, text="%.2fzł" % round(prod.cena, 2), bg=self.mainColor).grid(
+                    row=x, column=1, pady=3)
+                if self.user.type == 'client':
+                    Button(self.main, text="Info", fg=self.fontColor, bg=self.secondaryColor, command=lambda tempID=prod.id: self.ProductInfo(
+                        tempID), width=8).grid(row=x, column=2, pady=3, sticky=W)
+                else:
+                    Button(self.main, text="Info", fg=self.fontColor, bg=self.secondaryColor, command=lambda tempID=prod.id: self.ProductInfo(
+                        tempID), width=8).grid(row=x, column=2, pady=3)
+
             except:
                 pass
 
             try:
-                if self.user.type == 'user':
-                    if (DB.ProdInCart(prod.name) == 0):
-                        Button(self.main, text="Dodaj do koszyka", bg="green", command=lambda tempname=prod.name: AddToCart(
-                            tempname, self.user.login)).grid(row=x, column=2)
+                if self.user.type == 'client':
+                    if (DB.ProductInCart(prod.id) == 0):
+                        Button(self.main, text="Dodaj do koszyka",
+                               bg="green", command=lambda tempID=prod.id: AddToCart(tempID, self.user.login, mode)).grid(row=x, column=2, sticky=E)
                     else:
-                        Button(self.main, text="Usuń z koszyka", bg="red", command=lambda tempname=prod.name: RemoveFromCart(
-                            tempname, self.user.login)).grid(row=x, column=2)
+                        Button(self.main, text="Usuń z koszyka", bg="red", command=lambda tempID=prod.id: RemoveFromCart(
+                            tempID, self.user.login, mode)).grid(row=x, column=2, sticky=E)
                 if self.user.type == 'admin':
-                    # print(prod.name)
-                    Button(self.main, text="Usuń produkt", bg="red",
-                           command=lambda tempID=prod.id, tempname=prod.name: RemoveProduct(tempID, tempname)).grid(row=x, column=2)
+                    Button(self.main, text="Usuń", bg="red",
+                           command=lambda tempID=prod.id: RemoveProduct(tempID, mode)).grid(row=x, column=2, sticky=W)
+                    Button(self.main, text="Edytuj", bg="blue",
+                           command=lambda tempID=prod.id: EditProduct(tempID, mode)).grid(row=x, column=2, sticky=E)
             except:
                 pass
             x += 1
         while x < Produkty.rozmiarStrony+2:
-            Label(self.main, text=" ", height=1).grid(row=x, column=0)
+            Label(self.main, text=" ", height=1, bg=self.mainColor).grid(
+                row=x, column=0, pady=3)
             x += 1
 
-        def Prev():
+        def Prev(mode):
             Produkty.strona -= 1
             if Produkty.strona == 0:
                 Produkty.strona = 1
-            try:
-                if self.user.type == "user":
-                    self.ProductsList(Produkty.strona)
-                elif self.user.type == "admin":
-                    self.EditProduct(Produkty.strona)
-            except:
-                self.ProductsList(Produkty.strona)
+            self.ProductsList(Produkty.strona, mode)
 
-        def Next():
+        def Next(mode):
             Produkty.strona += 1
-            try:
-                if self.user.type == "user":
-                    self.ProductsList(Produkty.strona)
-                elif self.user.type == "admin":
-                    self.EditProduct(Produkty.strona)
-            except:
-                self.ProductsList(Produkty.strona)
+            self.ProductsList(Produkty.strona, mode)
 
         Button(self.main,
                text="<",
-               bg="blue",
-               fg="yellow",
-               command=Prev,
+               bg=self.secondaryColor,
+               fg=self.fontColor,
+               command=lambda: Prev(mode),
                width=5,
                ).grid(row=x, column=1, sticky=W, pady=10)
 
         Button(self.main,
                text=">",
-               bg="blue",
-               fg="yellow",
-               command=Next,
+               bg=self.secondaryColor,
+               fg=self.fontColor,
+               command=lambda: Next(mode),
                width=5,
                ).grid(row=x, column=1, sticky=E, pady=10)
 
-    def ProductInfo(self, nazwa):
+        if self.user.type == 'admin':
+            self.EditProduct(1, id)
+
+    def ProductInfo(self, id) -> None:
         self.ClearGUI()
         for x in Produkty.lista:
-            if x.name == nazwa:
-                Label(self.main, text=f"{x.name}", font=(
-                    "Arial", 25)).grid(row=0, column=0, padx=5)
+            if x.id == id:
+                Label(self.main, text=f"{x.nazwa}", font=(
+                    "Arial", 20), bg=self.mainColor).grid(row=0, column=0, padx=5, columnspan=2)
 
-                frm = Frame(self.main, width=300, height=200)
-                frm.grid(row=1, column=0, padx=5)
+                Label(self.main, text=f"Cena: {x.cena}zł", font=(
+                    "Arial", 12), bg=self.mainColor).grid(
+                    row=1, column=0, padx=5, columnspan=2)
 
-                Label(frm, text=f"{x.price}").grid(
-                    row=0, column=0, padx=5)
+                Label(self.main, text=f"Ilość: {x.ilosc} szt.", font=(
+                    "Arial", 12), bg=self.mainColor).grid(
+                    row=2, column=0, padx=5, columnspan=2)
 
-                #Label(frm, text=f"{x.ilosc}").grid(row=0, column=1, padx=5)
+                Label(self.main, text=f"{x.opis}", width=50, bg=self.mainColor, wraplength=300, justify="center").grid(
+                    row=3, column=0, padx=5, columnspan=2)
 
-                Label(self.main, text=f"{x.opis}").grid(
-                    row=2, column=0, padx=5)
                 Button(self.main,
                        text="Cofnij",
-                       bg="blue",
-                       fg="yellow",
+                       bg=self.secondaryColor,
+                       fg=self.fontColor,
                        width=15,
-                       command=lambda: self.ProductsList(Produkty.strona),
-                       ).grid(row=3, column=0)
-                
-                image = Image.open("test.png")
-                resize_image = image.resize((200, 200))
-                
-                img = ImageTk.PhotoImage(resize_image)
-                
-                # create label and add resize image
-                label1 = Label(image=img)
-                label1.image = img
-                label1.pack()
+                       command=lambda: self.ProductsList(Produkty.strona)
+                       ).grid(row=4, column=0)
+
+                canvas_for_image = Canvas(
+                    self.main, height=200, width=200, highlightbackground="black", highlightthickness=2)  # , bg='green'
+                canvas_for_image.grid(
+                    row=0, column=3, sticky='nesw', padx=0, pady=0, rowspan=3)
+
+                try:
+                    image = Image.open(f'img/{x.nazwa}.jpg')
+                except:
+                    try:
+                        image = Image.open(f'img/{x.nazwa}.png')
+                    except:
+                        image = Image.open(f'img/blank.png')
+                canvas_for_image.image = ImageTk.PhotoImage(
+                    image.resize((200, 200), Image.ANTIALIAS))
+                canvas_for_image.create_image(
+                    0, 0, image=canvas_for_image.image, anchor='nw')
                 break
 
-    def Search(self, searchResults):
+    def Search(self, searchResults) -> None:
         self.ClearGUI()
-        try:
-            if self.user.type == "user":
-                self.PanelKlienta()
-        except:
-            self.PanelGoscia()
 
         Button(self.main,
-               text="X",
-               bg="blue",
-               fg="yellow",
+               text="Cofnij",
+               bg=self.secondaryColor,
+               fg=self.mainColor,
                width=15,
-               command=lambda: self.ProductsList(1),
+               command=lambda: self.ProductsList(Produkty.strona),
                ).grid(row=1, column=2)
-        Label(self.main, text=" ", height=1).grid(row=1, column=0)
+        Label(self.main, text=" ", bg=self.mainColor,
+              height=1).grid(row=1, column=0)
 
         b = 2
         for x in searchResults:
-            Label(self.main, text=f"{x.name}",
+            Label(self.main, text=f"{x.nazwa}", bg=self.mainColor,
                   height=1, width=10).grid(row=b, column=0, padx=25)
             Label(self.main, text="%.2fzł" %
-                  round(x.price, 2)).grid(row=b, column=1, padx=25)
+                  round(x.cena, 2), bg=self.mainColor).grid(row=b, column=1, padx=25)
             b += 1
 
         def Prev(searchResults):
@@ -377,171 +431,80 @@ class GUI:
 
         Button(self.main,
                text="<",
-               bg="blue",
-               fg="yellow",
-               command=lambda: Prev(searchResults),
+               bg=self.secondaryColor,
+               fg=self.fontColor,
+               command=Prev,
                width=5,
-               ).grid(row=b, column=1, sticky=W, pady=10)
+               ).grid(row=x, column=1, sticky=W, pady=10)
 
         Button(self.main,
                text=">",
-               bg="blue",
-               fg="yellow",
-               command=lambda: Next(searchResults),
+               bg=self.secondaryColor,
+               fg=self.fontColor,
+               command=Next,
                width=5,
-               ).grid(row=b, column=1, sticky=E, pady=10)
+               ).grid(row=x, column=1, sticky=E, pady=10)
 
-# ----- account ----- #
+    def ClearGUI(self) -> None:
+        for widget in self.main.winfo_children():
+            widget.destroy()
 
-    def Account(self):
+    def Koszyk(self) -> None:
+        pass
+
+    def Zamowienia(self) -> None:
         self.ClearGUI()
-        # self.PanelKlienta()
 
-        Button(self.main,
-               text="Dane",
-               bg="blue",
-               fg="yellow",
-               command=self.AccountData,
-               width=15,
-               ).grid(row=2, column=0)
-
-        Button(self.main,
-               text="Zamowienia",
-               bg="blue",
-               fg="yellow",
-               command=self.OrdersList,
-               width=15,
-               ).grid(row=2, column=1)
-
-    def AccountData(self):
-        self.ClearGUI()
-        # self.PanelKlienta()
-
-        self.user.wypiszDane()
-
-        Label(self.main,
-              text=f"Imie: {self.user.daneUzytkownika()[0]}"
-              ).grid(row=3, column=0)  # .grid(row=x, column=0)
-
-        Label(self.main,
-              text=f"Nazwisko: {self.user.daneUzytkownika()[1]}"
-              ).grid(row=3, column=1)
-
-        Label(self.main,
-              text=f"Ulica: {self.user.daneUzytkownika()[5]}"
-              ).grid(row=4, column=0)
-
-        Label(self.main,
-              text=f"Nr mieszkania: {self.user.daneUzytkownika()[6]}"
-              ).grid(row=4, column=1)
-
-        Label(self.main,
-              text=f"Kod Pocztowy: {self.user.daneUzytkownika()[7]}"
-              ).grid(row=5, column=0)
-
-        Label(self.main,
-              text=f"Miasto: {self.user.daneUzytkownika()[4]}"
-              ).grid(row=5, column=1)
-
-        Label(self.main,
-              text=f"Email: {self.user.daneUzytkownika()[2]}"
-              ).grid(row=6, column=0)
-
-        Label(self.main,
-              text=f"Nr Telefonu: {self.user.daneUzytkownika()[3]}"
-              ).grid(row=6, column=1)
-
-
-# ----- cart ----- #
-
-
-    def CartList(self):
-        self.ClearGUI()
-        # self.PanelKlienta()
-        cartUpdate = []
-        x = 2
-        self.user.koszyk.loadFromDB()
-        for prod in self.user.koszyk.zawartosc:
-            cartName = Label(self.main,
-                             text=f"{prod.produkt.name}")  # .grid(row=x, column=0)
-            cartName.grid(row=x, column=0)
-
-            cartPrice = Label(self.main,
-                              text="%.2fzł" % round(prod.produkt.price, 2))  # .grid(row=x, column=0)
-            cartPrice.grid(row=x, column=1)
-
-            cartNumber = Entry(self.main, width=8)
-            cartNumber.insert(0, f"{prod.ilosc}")
-            cartNumber.grid(row=x, column=2)
-            cartUpdate.append((cartName, cartNumber))
-
-            def Remove(prod, username):
-                DB.RemoveFromCart(prod, username)
-                self.CartList()
-
-            Button(self.main, text="X", bg="red", command=lambda tempname=prod.produkt.name: Remove(
-                tempname, self.user.login)).grid(row=x, column=3)
-
-            x += 1
-
-        endPrice = Label(self.main,
-                         text=f"Suma: {self.user.koszyk.obliczWartosc()}")  # .grid(row=x, column=0)
-        endPrice.grid(row=x, column=2)
-
-        Button(self.main,
-               text="Zapisz",
-               bg="blue",
-               fg="yellow",
-               command=lambda: self.CartEdit(cartUpdate),
-               width=6,
-               ).grid(row=x+1, column=2, sticky=W)
-
-        Button(self.main,
-               text="Anuluj",
-               bg="blue",
-               fg="yellow",
-               command=self.CartList,
-               width=6,
-               ).grid(row=x+1, column=2, sticky=E)
-
-        Button(self.main,
-               text="Złóż zamówiene",
-               bg="blue",
-               fg="yellow",
-               command=lambda: self.OrderData(self.user),
-               width=15,
-               ).grid(row=x+2, column=2, pady=5)
-
-    def CartEdit(self, update):
-        global cart
-        for x in update:
-            self.user.koszyk.zmien(x[0]['text'], x[1].get())
-        self.CartList()
-
-# ----- orders ----- #
-
-    def OrdersList(self):
-        self.ClearGUI()
-        # self.PanelKlienta()
-        Label(self.main, text="cena").grid(row=2, column=0)
-        Label(self.main, text="data zamówienia").grid(row=2, column=1)
-        Label(self.main, text="status").grid(row=2, column=2)
+        Label(self.main, text="cena", bg=self.mainColor,
+              font=("Arial", 12)).grid(row=2, column=0, padx=5)
+        Label(self.main, text="data zamówienia",
+              bg=self.mainColor, font=("Arial", 12)).grid(row=2, column=1, padx=5)
+        Label(self.main, text="status", bg=self.mainColor,
+              font=("Arial", 12)).grid(row=2, column=2, padx=5)
         b = 3
-        orders = Zamowienia(DB.loadOrders(self.user.login), self.user.login)
-        for x in orders.lista:
-            Label(self.main, text=f"{x[0]}").grid(row=b, column=0)
-            Label(self.main, text=f"{x[1]}").grid(row=b, column=1)
-            Label(self.main, text=f"{x[2]}").grid(row=b, column=2)
-            b += 1
-            print(x[0], x[1], x[2])
-            # "%.2fzł" % round(prod.produkt.price, 2)
+        orders = DB.loadUserOrders(self.user.login)
+        for x in orders:
+            Label(self.main, text=f"{x[1]} zł",
+                  bg=self.mainColor).grid(row=b, column=0)
+            Label(self.main, text=f"{x[2]}",
+                  bg=self.mainColor).grid(row=b, column=1)
+            Label(self.main, text=f"{x[3]}",
+                  bg=self.mainColor).grid(row=b, column=2)
 
-    def OrderData(self, klient):
-        # klient.koszyk.loadFromDB()
-        # klient.koszyk.obliczWartosc()
-        # now = date.today()
-        # now.strftime('%Y-%m-%d %H:%M:%S')
-        # order = Zamowienie(klient.login, klient.koszyk.wartosc, klient.koszyk.zawartosc, now, 'waiting for authorization')
+            def cancel(id: int):
+                DB.CancelOrder(id)
+                self.Zamowienia()
+
+            Button(self.main,
+                   text="Info",
+                   bg=self.secondaryColor,
+                   fg=self.fontColor,
+                   command=lambda tempID=x[0]: self.OrderInfo(tempID),
+                   ).grid(row=b, column=3, pady=10)
+
+            if x[3] == "waiting for payment":
+                Button(self.main,
+                       text="Zapłać za pobraniem",
+                       bg=self.secondaryColor,
+                       fg=self.fontColor,
+                       command=lambda tempID=x[0]: self.Payment(tempID, False),
+                       ).grid(row=b, column=4, pady=10)
+                Button(self.main,
+                       text="Zapłać przelewem",
+                       bg=self.secondaryColor,
+                       fg=self.fontColor,
+                       command=lambda tempID=x[0]: self.Payment(tempID),
+                       ).grid(row=b, column=5, pady=10)
+            elif x[3] == "waiting for authorization" or x[3] == "in progress":
+                Button(self.main,
+                       text="Anuluj zamówienie",
+                       bg=self.secondaryColor,
+                       fg=self.fontColor,
+                       command=lambda tempID=x[0]: cancel(tempID),
+                       ).grid(row=b, column=4, pady=10)
+            b += 1
+
+    def OrderData(self, klient) -> None:
         self.ClearGUI()
 
         def createOrder(klient):
@@ -559,118 +522,434 @@ class GUI:
 
             klient.koszyk.loadFromDB()
             klient.koszyk.obliczWartosc()
-            now = datetime.now()
-            now = now.strftime("%Y-%m-%d %H:%M:%S")
             daneKlienta = (imie, nazwisko, email,
                            nrTel, miasto, ulica, lokal, kod)
             order = Zamowienie(klient.login, ''.join(f"{str(e)};" for e in daneKlienta), klient.koszyk.wartosc,
-                               ''.join(f"{str(e.produkt.id)}-{str(e.ilosc)};" for e in klient.koszyk.zawartosc), now, 'waiting for authorization')
+                               ''.join(
+                                   f"{str(e.produkt.id)}-{str(e.ilosc)};" for e in klient.koszyk.zawartosc),
+                               time.strftime('%Y-%m-%d %H:%M:%S'), 'waiting for payment')
             order.dodajZamowienie()
             DB.FromCartToOrder(klient.koszyk.zawartosc, klient.login)
             klient.koszyk.wartosc = 0
-            # self.PanelKlienta()
+            self.ProductsList(1)
 
-        Label(self.main, text="imie").grid(row=2, column=0)
-        nameEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="imie", bg=self.mainColor).grid(row=2, column=0)
+        nameEntry = Entry(self.main, bg=self.secondaryColor,
+                          fg=self.fontColor, width=20)
         nameEntry.grid(row=2, column=1)
         nameEntry.insert(0, f"{klient.imie}")
 
-        Label(self.main, text="nazwisko").grid(row=2, column=2)
-        surnameEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="nazwisko",
+              bg=self.mainColor).grid(row=2, column=2)
+        surnameEntry = Entry(self.main, bg=self.secondaryColor,
+                             fg=self.fontColor, width=20)
         surnameEntry.grid(row=2, column=3)
         surnameEntry.insert(0, f"{klient.nazwisko}")
 
-        Label(self.main, text="ulica").grid(row=3, column=0)
-        streetEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="ulica", bg=self.mainColor).grid(row=3, column=0)
+        streetEntry = Entry(self.main, bg=self.secondaryColor,
+                            fg=self.fontColor, width=20)
         streetEntry.grid(row=3, column=1)
         streetEntry.insert(0, f"{klient.ulica}")
 
-        Label(self.main, text="nr mieszkania").grid(row=3, column=2)
-        houseEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="nr mieszkania",
+              bg=self.mainColor).grid(row=3, column=2)
+        houseEntry = Entry(self.main, bg=self.secondaryColor,
+                           fg=self.fontColor, width=20)
         houseEntry.grid(row=3, column=3)
-        houseEntry.insert(0, f"{klient.lokal}")
+        houseEntry.insert(0, f"{klient.nr_mieszkania}")
 
-        Label(self.main, text="kod pocztowy").grid(row=4, column=0)
-        codeEntry = Entry(self.main, fg="yellow", bg="blue", width=6)
+        Label(self.main, text="kod pocztowy",
+              bg=self.mainColor).grid(row=4, column=0)
+        codeEntry = Entry(self.main, bg=self.secondaryColor,
+                          fg=self.fontColor, width=6)
         codeEntry.grid(row=4, column=1)
-        codeEntry.insert(0, f"{klient.kodPocztowy}")
+        codeEntry.insert(0, f"{klient.kod_Pocztowy}")
 
-        Label(self.main, text="miasto").grid(row=4, column=2)
-        cityEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="miasto", bg=self.mainColor).grid(row=4, column=2)
+        cityEntry = Entry(self.main, bg=self.secondaryColor,
+                          fg=self.fontColor, width=20)
         cityEntry.grid(row=4, column=3)
         cityEntry.insert(0, f"{klient.miasto}")
 
-        Label(self.main, text="e-mail").grid(row=5, column=0)
-        emailEntry = Entry(self.main, fg="yellow", bg="blue", width=20)
+        Label(self.main, text="e-mail", bg=self.mainColor).grid(row=5, column=0)
+        emailEntry = Entry(self.main, bg=self.secondaryColor,
+                           fg=self.fontColor, width=20)
         emailEntry.grid(row=5, column=1)
         emailEntry.insert(0, f"{klient.email}")
 
-        Label(self.main, text="nr telefonu").grid(row=5, column=2)
-        telEntry = Entry(self.main, fg="yellow", bg="blue", width=12)
+        Label(self.main, text="nr telefonu",
+              bg=self.mainColor).grid(row=5, column=2)
+        telEntry = Entry(self.main, bg=self.secondaryColor,
+                         fg=self.fontColor, width=12)
         telEntry.grid(row=5, column=3)
-        telEntry.insert(0, f"{klient.nrTel}")
+        telEntry.insert(0, f"{klient.nr_Telefonu}")
 
         Button(self.main,
                text="Zakończ",
-               bg="blue",
-               fg="yellow",
+               bg=self.secondaryColor,
+               fg=self.fontColor,
                command=lambda: createOrder(self.user),
                ).grid(row=7, column=1, pady=10)
 
         Button(self.main,
                text="Anuluj",
-               bg="blue",
-               fg="yellow",
+               bg=self.secondaryColor,
+               fg=self.fontColor,
                command=self.CartList,
                ).grid(row=7, column=2)
 
-
-# --------------- client --------------- #
-
-    def PanelAdmina(self):  # ----- admin panel ----- #
+    def AccountData(self) -> None:
         self.ClearGUI()
-        menubar = Menu(self.window)
-        menubar.add_cascade(label="Zarządzanie produktami",
-                            command=lambda: self.EditProduct(Produkty.strona))
-        menubar.add_separator()
-        menubar.add_cascade(label="Zarządzanie rabatami",
-                            command="")
-        menubar.add_separator()
-        menubar.add_cascade(label="Potwierdzanie zamówień",
-                            command="")
-        menubar.add_separator()
-        menubar.add_cascade(label=f"{self.user.login}",
-                            command="")
-        menubar.add_separator()
-        menubar.add_cascade(label="Wyloguj",
-                            command=self.Wylogowywanie)
-        self.window['menu'] = menubar
 
-    def EditProduct(self, strona):
-        self.ProductsList(strona)
+        Label(self.main,
+              text=f"Imie: {self.user.imie}", bg=self.mainColor
+              ).grid(row=3, column=0)  # .grid(row=x, column=0)
 
-        Label(self.main, text="Nazwa: ").grid(row=1, column=3, padx=5)
-        nazwaInput = Entry(self.main, width=10)
-        nazwaInput.grid(row=1, column=4, padx=5)
+        Label(self.main,
+              text=f"Nazwisko: {self.user.nazwisko}", bg=self.mainColor
+              ).grid(row=3, column=1)
 
-        Label(self.main, text="Cena: ").grid(row=1, column=5, padx=5)
-        cenaInput = Entry(self.main, width=10)
-        cenaInput.grid(row=1, column=6, padx=5)
+        Label(self.main,
+              text=f"Ulica: {self.user.ulica}", bg=self.mainColor
+              ).grid(row=4, column=0)
 
-        Label(self.main, text="Ilość: ").grid(row=1, column=7, padx=5)
-        iloscInput = Entry(self.main, width=10)
-        iloscInput.grid(row=1, column=8, padx=5)
+        Label(self.main,
+              text=f"Nr mieszkania: {self.user.nr_mieszkania}", bg=self.mainColor
+              ).grid(row=4, column=1)
 
-        Label(self.main, text="Opis: ").grid(row=2, column=3, padx=5)
+        Label(self.main,
+              text=f"Kod Pocztowy: {self.user.kod_Pocztowy}", bg=self.mainColor
+              ).grid(row=5, column=0)
 
-        frm = Frame(self.main, width=300, height=200, bg="blue")
-        frm.place(x=400, y=55)
+        Label(self.main,
+              text=f"Miasto: {self.user.miasto}", bg=self.mainColor
+              ).grid(row=5, column=1)
+
+        Label(self.main,
+              text=f"Email: {self.user.email}", bg=self.mainColor
+              ).grid(row=6, column=0)
+
+        Label(self.main,
+              text=f"Nr Telefonu: {self.user.nr_Telefonu}", bg=self.mainColor
+              ).grid(row=6, column=1)
+
+    def CartList(self) -> None:
+        self.ClearGUI()
+        cartUpdate = []
+        x = 2
+        self.user.koszyk.loadFromDB()
+        for prod in self.user.koszyk.zawartosc:
+            # .grid(row=x, column=0)
+            cartName = Label(
+                self.main, text=f"{prod.produkt.nazwa}", bg=self.mainColor)
+            cartName.grid(row=x, column=0, pady=3)
+
+            cartPrice = Label(self.main, text="%.2fzł" % round(
+                prod.produkt.cena, 2), bg=self.mainColor)  # .grid(row=x, column=0)
+            cartPrice.grid(row=x, column=1)
+
+            cartNumber = Entry(self.main, width=8)
+            cartNumber.insert(0, f"{prod.ilosc}")
+            cartNumber.grid(row=x, column=2)
+            cartUpdate.append((cartName, cartNumber))
+
+            def Remove(prodID, username):
+                DB.RemoveFromCart(prodID, username)
+                self.CartList()
+
+            Button(self.main, text="X", bg="#FF0000", fg=self.mainColor, width=3, command=lambda tempID=prod.produkt.id: Remove(
+                tempID, self.user.login)).grid(row=x, column=3)
+            Button(self.main, text="Info", fg=self.fontColor, bg=self.secondaryColor, command=lambda tempID=prod.produkt.id: self.ProductInfo(
+                tempID), width=8).grid(row=x, column=4, padx=5)
+
+            x += 1
+
+        # .grid(row=x, column=0)
+        endPrice = Label(
+            self.main, text=f"Suma:  {self.user.koszyk.obliczWartosc()}", bg=self.mainColor)
+        endPrice.grid(row=x, column=1, pady=3)
+
+        Button(self.main,
+               text="Zapisz",
+               bg=self.secondaryColor,
+               fg=self.mainColor,
+               command=lambda: self.CartEdit(cartUpdate),
+               width=6,
+               ).grid(row=x+1, column=2, sticky=W)
+
+        Button(self.main,
+               text="Anuluj",
+               bg=self.secondaryColor,
+               fg=self.mainColor,
+               command=self.CartList,
+               width=6,
+               ).grid(row=x+1, column=2, sticky=E)
+
+        Button(self.main,
+               text="Złóż zamówiene",
+               bg=self.secondaryColor,
+               fg=self.mainColor,
+               command=lambda: self.OrderData(self.user),
+               width=15,
+               ).grid(row=x+2, column=2, pady=5)
+
+    def CartEdit(self, update) -> None:
+        for x in update:
+            self.user.koszyk.zmien(x[0]['text'], x[1].get())
+        self.CartList()
+
+    def OrdersList(self) -> None:
+        self.ClearGUI()
+
+        Label(self.main, text="użytkownik", bg=self.mainColor,
+              font=("Arial", 12)).grid(row=2, column=0, padx=5)
+        Label(self.main, text="cena", bg=self.mainColor,
+              font=("Arial", 12)).grid(row=2, column=1, padx=5)
+        Label(self.main, text="data zamówienia",
+              bg=self.mainColor, font=("Arial", 12)).grid(row=2, column=2, padx=5)
+        Label(self.main, text="status", bg=self.mainColor,
+              font=("Arial", 12)).grid(row=2, column=3, padx=5)
+        b = 3
+        orders = DB.loadOrders()
+        for x in orders:
+            Label(self.main, text=f"{self.user.login} zł",
+                  bg=self.mainColor).grid(row=b, column=0)
+            Label(self.main, text=f"{x[1]} zł",
+                  bg=self.mainColor).grid(row=b, column=0)
+            Label(self.main, text=f"{x[2]}",
+                  bg=self.mainColor).grid(row=b, column=1)
+            Label(self.main, text=f"{x[3]}",
+                  bg=self.mainColor).grid(row=b, column=2)
+
+            def auth(id: int):
+                DB.Authorization(id)
+                self.OrdersList()
+
+            Button(self.main,
+                   text="Info",
+                   bg=self.secondaryColor,
+                   fg=self.fontColor,
+                   command=lambda tempID=x[0]: self.OrderInfo(tempID),
+                   ).grid(row=b, column=3, pady=10)
+            if x[3] == "waiting for authorization":
+                Button(self.main,
+                       text="Zatwierdź",
+                       bg=self.secondaryColor,
+                       fg=self.fontColor,
+                       command=lambda tempID=x[0]: auth(tempID),
+                       ).grid(row=b, column=4, pady=10)
+            b += 1
+
+    def Payment(self, id: int, transfer: bool | None = True) -> None:
+        self.ClearGUI()
+
+        def pay():
+            name = nameEntry.get()
+            surname = surnameEntry.get()
+            bank = street = house = code = city = typ = None
+            if transfer:
+                bank = bankEntry.get()
+                typ = 'przelew'
+            else:
+                street = streetEntry.get()
+                house = houseEntry.get()
+                code = codeEntry.get()
+                city = cityEntry.get()
+                typ = 'dostawa'
+            DB.Paid(id, typ)
+            self.Zamowienia()
+
+        Label(self.main, text="imie", bg=self.mainColor).grid(row=0, column=0)
+        nameEntry = Entry(self.main, fg=self.fontColor,
+                          bg=self.secondaryColor, width=20)
+        nameEntry.grid(row=0, column=1)
+
+        Label(self.main, text="nazwisko",
+              bg=self.mainColor).grid(row=0, column=2)
+        surnameEntry = Entry(self.main, fg=self.fontColor,
+                             bg=self.secondaryColor, width=20)
+        surnameEntry.grid(row=0, column=3)
+
+        if transfer:
+            Label(self.main, text="nr konta",
+                  bg=self.mainColor).grid(row=1, column=0)
+            bankEntry = Entry(self.main, fg=self.fontColor,
+                              bg=self.secondaryColor, width=40)
+            bankEntry.grid(row=1, column=1, columnspan=3)
+        else:
+            Label(self.main, text="ulica", bg=self.mainColor).grid(
+                row=1, column=0)
+            streetEntry = Entry(self.main, fg=self.fontColor,
+                                bg=self.secondaryColor, width=20)
+            streetEntry.grid(row=1, column=1)
+
+            Label(self.main, text="nr mieszkania",
+                  bg=self.mainColor).grid(row=1, column=2)
+            houseEntry = Entry(self.main, fg=self.fontColor,
+                               bg=self.secondaryColor, width=20)
+            houseEntry.grid(row=1, column=3)
+
+            Label(self.main, text="kod pocztowy",
+                  bg=self.mainColor).grid(row=2, column=0)
+            codeEntry = Entry(self.main, fg=self.fontColor,
+                              bg=self.secondaryColor, width=20)
+            codeEntry.grid(row=2, column=1)
+
+            Label(self.main, text="miasto",
+                  bg=self.mainColor).grid(row=2, column=2)
+            cityEntry = Entry(self.main, fg=self.fontColor,
+                              bg=self.secondaryColor, width=20)
+            cityEntry.grid(row=2, column=3)
+
+        Button(self.main,
+               text="Zatwierdź",
+               bg=self.secondaryColor,
+               fg=self.fontColor,
+               command=pay,
+               ).grid(row=3, column=1, pady=10)
+
+        Button(self.main,
+               text="Cofnij",
+               bg=self.secondaryColor,
+               fg=self.fontColor,
+               command=self.Zamowienia,
+               ).grid(row=3, column=2, pady=10)
+
+    def OrderInfo(self, id) -> None:
+        self.ClearGUI()
+        info = DB.OrderInfo(id)
+
+        Label(self.main,
+              text=f"Imie: {info[0].split(';')[0]}", bg=self.mainColor
+              ).grid(row=3, column=0)  # .grid(row=x, column=0)
+
+        Label(self.main,
+              text=f"Nazwisko: {info[0].split(';')[1]}", bg=self.mainColor
+              ).grid(row=3, column=1)
+
+        Label(self.main,
+              text=f"Ulica: {info[0].split(';')[6]}", bg=self.mainColor
+              ).grid(row=4, column=0)
+
+        Label(self.main,
+              text=f"Nr mieszkania: {info[0].split(';')[7]}", bg=self.mainColor
+              ).grid(row=4, column=1)
+
+        Label(self.main,
+              text=f"Kod Pocztowy: {info[0].split(';')[8]}", bg=self.mainColor
+              ).grid(row=5, column=0)
+
+        Label(self.main,
+              text=f"Miasto: {info[0].split(';')[5]}", bg=self.mainColor
+              ).grid(row=5, column=1)
+
+        Label(self.main,
+              text=f"Email: {info[0].split(';')[3]}", bg=self.mainColor
+              ).grid(row=6, column=0)
+
+        Label(self.main,
+              text=f"Nr Telefonu: {info[0].split(';')[4]}", bg=self.mainColor
+              ).grid(row=6, column=1)
+
+        Label(self.main,
+              text=f"Status: {info[3]}", bg=self.mainColor
+              ).grid(row=7, column=0)
+        Label(self.main,
+              text=f"Utworzone: {info[4]}", bg=self.mainColor
+              ).grid(row=7, column=1)
+        Label(self.main,
+              text=f"==================================", bg=self.mainColor
+              ).grid(row=8, column=0, columnspan=2)
+
+        x = 9
+        for i in info[2].split(';'):
+            try:
+                temp = DB.SelectProduct(i.split('-')[0])
+                Label(self.main,
+                      text=f"{temp[0]}", bg=self.mainColor
+                      ).grid(row=x, column=0)
+                Label(self.main,
+                      text=f"{i.split('-')[1]}", bg=self.mainColor
+                      ).grid(row=x, column=1)
+            except:
+                pass
+            x += 1
+
+    def Wylogowywanie(self) -> None:
+        self.user = Gosc()
+        self.PanelGoscia()
+
+    def EditProduct(self, strona, id: int | None = None) -> None:
+
+        def EdytowanieProduktow(id):
+            nazwa = nazwaInput.get()
+            cena = cenaInput.get()
+            cena = cena.replace(",", ".")
+            try:
+                cena = float(cena)
+                ilosc = iloscInput.get()
+                ilosc = int(ilosc)
+                kategoria = kategoriaInput.get()
+                opis = text_area.get("1.0", 'end-1c')
+                DB.EditProduct(id, nazwa, cena, ilosc, opis, kategoria)
+                Produkty.loadFromDB()
+                self.ProductsList(1)
+            except:
+                print("błąd")
+
+        nazwa = kategoria = opis = ""
+        ilosc = cena = 0
+        if id is not None:
+            prod = DB.SelectProduct(id)
+            nazwa = prod[0]
+            cena = prod[1]
+            ilosc = prod[2]
+            kategoria = prod[3]
+            opis = prod[4]
+            Button(self.main,
+                   text="Edytuj",
+                   bg=self.secondaryColor,
+                   fg=self.fontColor,
+                   command=lambda: EdytowanieProduktow(id),
+                   width=10,
+                   ).place(x=790, y=260)
+
+        Label(self.main, text="Nazwa: ", bg=self.mainColor, width=10).grid(
+            row=1, column=3, padx=10)
+        nazwaInput = Entry(self.main, width=44)
+        nazwaInput.insert(END, nazwa)
+        nazwaInput.grid(row=1, column=4, padx=5, columnspan=3)
+
+        Label(self.main, text="Cena: ", bg=self.mainColor).grid(
+            row=2, column=3, padx=5)
+        cenaInput = Entry(self.main, width=15)
+        cenaInput.insert(END, cena)
+        cenaInput.grid(row=2, column=4, padx=5)
+
+        Label(self.main, text="Ilość: ", bg=self.mainColor, width=10).grid(
+            row=2, column=5, padx=5)
+        iloscInput = Entry(self.main, width=15)
+        iloscInput.insert(END, ilosc)
+        iloscInput.grid(row=2, column=6, padx=5)
+
+        Label(self.main, text="Kategoria: ", bg=self.mainColor, width=10).grid(
+            row=3, column=5, padx=5)
+        kategoriaInput = Entry(self.main, width=15)
+        kategoriaInput.insert(END, kategoria)
+        kategoriaInput.grid(row=3, column=6, padx=5)
+
+        Label(self.main, text="Opis: ", bg=self.mainColor).grid(
+            row=4, column=3, padx=5)
+
+        frm = Frame(self.main, bg=self.secondaryColor)
+        frm.place(x=755, y=135)
         text_area = scrolledtext.ScrolledText(frm,
                                               wrap=WORD,
-                                              width=35,
+                                              width=28,
                                               height=5,
                                               font=("Times New Roman", 15))
-
+        text_area.insert(END, opis)
         text_area.grid(column=0)
 
         text_area.focus()
@@ -679,18 +958,52 @@ class GUI:
             nazwa = nazwaInput.get()
             cena = cenaInput.get()
             cena = cena.replace(",", ".")
-            cena = float(cena)
-            ilosc = iloscInput.get()
-            ilosc = int(ilosc)
-            opis = text_area.get("1.0", 'end-1c')
-            print(nazwa, cena, ilosc, opis)
-            DB.AddProduct(nazwa, cena, ilosc, opis)
-            Produkty.loadFromDB()
+            try:
+                cena = float(cena)
+                ilosc = iloscInput.get()
+                ilosc = int(ilosc)
+                kategoria = kategoriaInput.get()
+                opis = text_area.get("1.0", 'end-1c')
+                DB.AddProduct(nazwa, cena, ilosc, opis, kategoria)
+                Produkty.loadFromDB()
+                self.ProductsList(1)
+            except:
+                print("błąd")
 
         Button(self.main,
                text="Dodaj",
-               bg="blue",
-               fg="yellow",
+               bg=self.secondaryColor,
+               fg=self.fontColor,
                command=DodawnieProduktow,
                width=10,
-               ).grid(row=8, column=3)
+               ).place(x=690, y=260)
+        # .grid(row=8, column=3)
+        return
+
+    def Zarzadzanie_Rabatami(self) -> None:
+        pass
+
+    def Authorization(self) -> None:
+        pass
+
+    def __init__(self, window):
+        self.user = Gosc()
+        # self.db = DB()
+        self.___rozmiary_aplikacji: str = None
+        self.___nazwa_Aplikacji: str = None
+        #self._unnamed_DB_: DB = None
+
+        self.mainColor = "#F5F2D2"
+        self.secondaryColor = "#36352E"
+        self.fontColor = "#DBD9BD"
+
+        self.window = window
+        window.title("Internet Paper Shop Application")
+        window.geometry('1280x720')  # '250x200+250+200'
+        window.option_add('*tearOff', FALSE)
+        window['bg'] = self.mainColor
+
+        self.main = Frame(window, height=500)
+        self.main.place(x=5, y=0)
+        self.main['bg'] = self.mainColor
+        self.PanelGoscia()
