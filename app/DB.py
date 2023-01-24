@@ -8,11 +8,6 @@ from app.connection import *
 cursor = connection.cursor()
 
 
-# cursor.execute(f"")
-# fetchedRows = cursor.fetchall()
-# cursor.fetchone()
-# connection.commit()
-
 class DB:
     def AddClient(login: str, imie: str, nazwisko, email: str,
                   miasto: str, ulica: str, nr_mieszkania: str, kod_pocztowy: str, nr_telefonu: str) -> None:
@@ -131,9 +126,6 @@ class DB:
             f"SELECT `login`, `imie`, `nazwisko`, `ulica`, `nr_mieszkania`, `kod_pocztowy`, `miasto`, `email`, `nr_telefonu` FROM `klienci` WHERE login = '{login}';")
         return cursor.fetchone()
 
-    def OrdersToAuthorization(self) -> None:
-        pass
-
     def Authorization(id) -> None:
         connection.cursor().execute(
             f"UPDATE `zamowienia` SET `status` = 'in progress' WHERE (`_id` = '{id}');")
@@ -160,18 +152,6 @@ class DB:
         cursor.execute(
             f"SELECT `kategoria` FROM `produkty` GROUP BY `kategoria`")
         return cursor.fetchall()
-
-    def LoadDiscounts(self) -> None:
-        pass
-
-    def AddDiscount(self) -> None:
-        pass
-
-    def DeleteDiscount(self) -> None:
-        pass
-
-    def EditDiscount(self) -> None:
-        pass
 
     def __init__(self):
         self._unnamed_GUI_: GUI = None

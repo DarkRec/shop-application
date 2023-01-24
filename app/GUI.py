@@ -17,7 +17,6 @@ from app.Zamowienie import *
 
 
 class GUI:
-
     def PanelGoscia(self) -> None:  # ----- guest panel ----- # for guest
         self.ClearGUI()
 
@@ -224,9 +223,6 @@ class GUI:
         menubar.add_cascade(label="Zarządzanie produktami",
                             command=lambda: self.ProductsList(1))
         menubar.add_separator()
-        menubar.add_cascade(label="Zarządzanie rabatami",
-                            command="")
-        menubar.add_separator()
         menubar.add_cascade(label="Potwierdzanie zamówień",
                             command=self.OrdersList)
         menubar.add_separator()
@@ -404,12 +400,12 @@ class GUI:
             row=0, column=3, sticky='nesw', padx=0, pady=0, rowspan=3)
 
         try:
-            image = Image.open(f'img/{prod.nazwa}.jpg')
+            image = Image.open(f'../../img/{prod.nazwa}.jpg')
         except:
             try:
-                image = Image.open(f'img/{prod.nazwa}.png')
+                image = Image.open(f'../../img/{prod.nazwa}.png')
             except:
-                image = Image.open(f'img/blank.png')
+                image = Image.open(f'../../img/blank.png')
         canvas_for_image.image = ImageTk.PhotoImage(
             image.resize((200, 200), Image.ANTIALIAS))
         canvas_for_image.create_image(
