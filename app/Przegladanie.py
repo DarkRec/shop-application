@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-from app.DB import *
+from DB.DB import *
 from app.Produkt import Produkt
 
 

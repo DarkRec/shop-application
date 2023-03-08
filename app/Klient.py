@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 from app.Koszyk import Koszyk
-from app.DB import *
+from DB.DB import *
 
 
 class Klient:

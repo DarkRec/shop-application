@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 #from typing import List
-from app.DB import DB
+from DB.DB import DB
 
 
 class Zamowienie(object):

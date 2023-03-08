@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 from app.Zamowienie import *
 
-from app.DB import *
+from DB.DB import *
 from app.Produkt import Produkt
 from app.ElementKoszyka import *
 

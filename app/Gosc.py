@@ -3,7 +3,7 @@
 from tkinter import messagebox
 
 from security.passwd import *
-from app.DB import *
+from DB.DB import *
 
 
 class Gosc:

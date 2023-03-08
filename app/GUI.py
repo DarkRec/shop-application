@@ -8,7 +8,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import time
 
-from app.DB import DB
+from DB.DB import DB
 from app.Gosc import Gosc
 from app.Klient import Klient
 from app.Administrator import *
@@ -400,12 +400,12 @@ class GUI:
             row=0, column=3, sticky='nesw', padx=0, pady=0, rowspan=3)
 
         try:
-            image = Image.open(f'../../img/{prod.nazwa}.jpg')
+            image = Image.open(f'./img/{prod.nazwa}.jpg')
         except:
             try:
-                image = Image.open(f'../../img/{prod.nazwa}.png')
+                image = Image.open(f'./img/{prod.nazwa}.png')
             except:
-                image = Image.open(f'../../img/blank.png')
+                image = Image.open(f'./img/blank.png')
         canvas_for_image.image = ImageTk.PhotoImage(
             image.resize((200, 200), Image.ANTIALIAS))
         canvas_for_image.create_image(

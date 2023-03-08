@@ -4,7 +4,7 @@
 from app.GUI import *
 #from typing import List
 
-from app.connection import *
+from DB.connection import *
 cursor = connection.cursor()
 
 
